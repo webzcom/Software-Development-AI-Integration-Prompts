@@ -38,7 +38,7 @@ function estimateTokens(text) {
 /* ── State ──────────────────────────────────────────────── */
 const state = {
   currentStep: 0,
-  selectedModel: 'haiku',
+  /* selectedModel removed — all 3 models shown simultaneously */
   fields: {
     personaRole:       '',
     personaExperience: '',
@@ -73,17 +73,7 @@ const elPromptOut   = $('prompt-output');
 const elQualBadge   = $('quality-badge');
 const elToast       = $('toast');
 
-const elCostInputTokens  = $('cost-input-tokens');
-const elCostOutputTokens = $('cost-output-tokens');
-const elCostInputVal     = $('cost-input-val');
-const elCostOutputVal    = $('cost-output-val');
-const elCostTotal        = $('cost-total');
-const elMonthlyTotal     = $('monthly-total');
-const elVolumeSlider     = $('volume-slider');
-const elVolumeLabel      = $('volume-label');
-const elSpecInputRate    = $('spec-input-rate');
-const elSpecOutputRate   = $('spec-output-rate');
-const elSpecUseCase      = $('spec-use-case');
+/* cost estimator DOM refs resolved dynamically in updateCostEstimator() */
 
 /* ── Navigation ─────────────────────────────────────────── */
 const STEP_COLORS = ['#6d5ef5','#0ea8d5','#e8590c','#d42e8c','#1db870','#6d5ef5'];
@@ -141,19 +131,7 @@ document.addEventListener('click', function(e) {
     resetAll();
     return;
   }
-  // Model tabs
-  const tab = e.target.closest('.model-tab');
-  if (tab) {
-    $$('.model-tab').forEach(t => {
-      t.classList.remove('active');
-      t.setAttribute('aria-selected', 'false');
-    });
-    tab.classList.add('active');
-    tab.setAttribute('aria-selected', 'true');
-    state.selectedModel = tab.dataset.model;
-    updateCostEstimator();
-    return;
-  }
+  /* model tab handler removed — all models shown simultaneously */
 });
 
 /* ── Field Binding ──────────────────────────────────────── */
@@ -319,40 +297,144 @@ function rebuildFinalPrompt() {
 }
 
 /* ── Cost Estimator ─────────────────────────────────────── */
-function updateCostEstimator() {
-  const prompt    = buildPrompt();
-  const inputTok  = estimateTokens(prompt);
-  const outputTok = 300; // assumed medium response
-  const model     = MODELS[state.selectedModel];
 
-  const inputCost  = (inputTok  / 1_000_000) * model.inputPPM;
-  const outputCost = (outputTok / 1_000_000) * model.outputPPM;
-  const totalCost  = inputCost + outputCost;
+/* Output token presets mapped to the 6-stop slider */
+const OUTPUT_TOKEN_STEPS = [100, 200, 300, 600, 1000, 2000];
+const OUTPUT_LABELS      = ['~100','~200','~300','~600','~1 000','~2 000'];
 
-  const volIdx     = parseInt(elVolumeSlider.value, 10);
-  const volume     = VOLUME_STEPS[volIdx];
-  const monthlyCost = totalCost * volume;
+let currentOutputIdx = 2; // default: 300 tokens
 
-  elCostInputTokens.textContent  = inputTok.toLocaleString();
-  elCostOutputTokens.textContent = '~' + outputTok.toLocaleString();
-  elCostInputVal.textContent     = '$' + inputCost.toFixed(6);
-  elCostOutputVal.textContent    = '$' + outputCost.toFixed(6);
-  elCostTotal.textContent        = '$' + totalCost.toFixed(6);
-  elVolumeLabel.textContent      = volume.toLocaleString() + ' calls/mo';
-  elMonthlyTotal.textContent     = '$' + formatMoney(monthlyCost);
-  elSpecInputRate.textContent    = '$' + model.inputPPM.toFixed(2) + ' / MTok';
-  elSpecOutputRate.textContent   = '$' + model.outputPPM.toFixed(2) + ' / MTok';
-  elSpecUseCase.textContent      = model.useCase;
+/* Model use-case descriptions shown in best-value callout */
+const MODEL_META = {
+  haiku:  { label: 'Haiku 4.5',  useCase: 'fastest, highest-volume tasks' },
+  sonnet: { label: 'Sonnet 4.6', useCase: 'balanced quality and speed' },
+  opus:   { label: 'Opus 4.8',   useCase: 'complex reasoning and analysis' }
+};
+
+function calcModelCost(modelKey, inputTok, outputTok) {
+  const m = MODELS[modelKey];
+  const inputCost  = (inputTok  / 1_000_000) * m.inputPPM;
+  const outputCost = (outputTok / 1_000_000) * m.outputPPM;
+  return { inputCost, outputCost, total: inputCost + outputCost };
 }
 
 function formatMoney(n) {
-  if (n < 0.01)   return n.toFixed(6);
-  if (n < 1)      return n.toFixed(4);
-  if (n < 100)    return n.toFixed(2);
-  return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (n < 0.000001) return '$0.000000';
+  if (n < 0.01)     return '$' + n.toFixed(6);
+  if (n < 1)        return '$' + n.toFixed(4);
+  if (n < 100)      return '$' + n.toFixed(2);
+  return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-elVolumeSlider.addEventListener('input', updateCostEstimator);
+function formatMoneyShort(n) {
+  if (n < 0.000001) return '$0.000000';
+  if (n < 0.01)     return '$' + n.toFixed(6);
+  if (n < 0.10)     return '$' + n.toFixed(5);
+  if (n < 1)        return '$' + n.toFixed(4);
+  if (n < 100)      return '$' + n.toFixed(2);
+  return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function updateCostEstimator() {
+  const prompt    = buildPrompt();
+  const inputTok  = estimateTokens(prompt);
+  const outputTok = OUTPUT_TOKEN_STEPS[currentOutputIdx];
+
+  /* ── Token summary row ───────────────────────────────── */
+  const elInTok  = document.getElementById('cost-input-tokens');
+  const elOutTok = document.getElementById('cost-output-tokens');
+  if (elInTok)  elInTok.textContent  = inputTok.toLocaleString();
+  if (elOutTok) elOutTok.textContent = outputTok.toLocaleString();
+
+  /* ── Per-model costs ─────────────────────────────────── */
+  const costs = {};
+  ['haiku','sonnet','opus'].forEach(function(key) {
+    costs[key] = calcModelCost(key, inputTok, outputTok);
+  });
+
+  /* Populate table cells */
+  function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+
+  setText('haiku-input-cost',  formatMoneyShort(costs.haiku.inputCost));
+  setText('haiku-output-cost', formatMoneyShort(costs.haiku.outputCost));
+  setText('haiku-total',       formatMoneyShort(costs.haiku.total));
+
+  setText('sonnet-input-cost',  formatMoneyShort(costs.sonnet.inputCost));
+  setText('sonnet-output-cost', formatMoneyShort(costs.sonnet.outputCost));
+  setText('sonnet-total',       formatMoneyShort(costs.sonnet.total));
+
+  setText('opus-input-cost',  formatMoneyShort(costs.opus.inputCost));
+  setText('opus-output-cost', formatMoneyShort(costs.opus.outputCost));
+  setText('opus-total',       formatMoneyShort(costs.opus.total));
+
+  /* Highlight cheapest row */
+  const modelKeys   = ['haiku','sonnet','opus'];
+  const totals      = modelKeys.map(k => costs[k].total);
+  const minTotal    = Math.min.apply(null, totals);
+  const cheapestKey = modelKeys[totals.indexOf(minTotal)];
+
+  document.querySelectorAll('.mct-row').forEach(function(row) {
+    row.classList.toggle('cheapest', row.dataset.model === cheapestKey);
+  });
+
+  /* ── Best-value callout ──────────────────────────────── */
+  const elBestText = document.getElementById('best-value-text');
+  if (elBestText) {
+    if (inputTok === 0) {
+      elBestText.textContent = 'Fill in your prompt to see cost estimates.';
+    } else {
+      const diff = costs.opus.total - costs.haiku.total;
+      const pct  = costs.haiku.total > 0 ? Math.round((diff / costs.opus.total) * 100) : 0;
+      elBestText.textContent =
+        MODEL_META[cheapestKey].label + ' is the most cost-effective for this prompt ' +
+        '(' + MODEL_META[cheapestKey].useCase + ').' +
+        (pct > 0 ? ' Haiku is ' + pct + '% cheaper than Opus per call.' : '');
+    }
+  }
+
+  /* ── Volume projection ───────────────────────────────── */
+  const elVolSlider = document.getElementById('volume-slider');
+  const elVolLabel  = document.getElementById('volume-label');
+  const volIdx      = elVolSlider ? parseInt(elVolSlider.value, 10) : 2;
+  const volume      = VOLUME_STEPS[volIdx];
+
+  if (elVolLabel) elVolLabel.textContent = volume.toLocaleString() + ' calls / mo';
+
+  setText('vol-haiku',  formatMoney(costs.haiku.total  * volume));
+  setText('vol-sonnet', formatMoney(costs.sonnet.total * volume));
+  setText('vol-opus',   formatMoney(costs.opus.total   * volume));
+}
+
+/* ── Output slider wiring ────────────────────────────────── */
+(function wireOutputSlider() {
+  const slider   = document.getElementById('output-slider');
+  const presets  = document.querySelectorAll('.output-preset');
+
+  function syncPresets(idx) {
+    presets.forEach(function(el, i) {
+      el.classList.toggle('active-mark', i === idx);
+    });
+  }
+
+  if (slider) {
+    slider.addEventListener('input', function() {
+      currentOutputIdx = parseInt(this.value, 10);
+      syncPresets(currentOutputIdx);
+      updateCostEstimator();
+    });
+  }
+  syncPresets(currentOutputIdx);
+})();
+
+/* ── Volume slider wiring ────────────────────────────────── */
+document.addEventListener('input', function(e) {
+  if (e.target && e.target.id === 'volume-slider') {
+    updateCostEstimator();
+  }
+});
 
 /* ── Copy & Reset ───────────────────────────────────────── */
 function copyPrompt() {

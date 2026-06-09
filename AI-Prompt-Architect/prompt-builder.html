@@ -371,46 +371,121 @@
       <!-- Cost estimator -->
       <div class="panel-card" id="cost-card">
         <h3 class="panel-title">Cost estimator</h3>
-        <p class="panel-note">Based on official Anthropic API pricing (June 2026). Estimated output assumes a medium-length response.</p>
+        <p class="panel-note">Pricing per API call for your current prompt. Based on official Anthropic rates (June 2026).</p>
 
-        <div class="model-tabs" role="tablist" aria-label="Model pricing tabs">
-          <button class="model-tab active" role="tab" aria-selected="true" data-model="haiku">Haiku 4.5</button>
-          <button class="model-tab" role="tab" aria-selected="false" data-model="sonnet">Sonnet 4.6</button>
-          <button class="model-tab" role="tab" aria-selected="false" data-model="opus">Opus 4.8</button>
-        </div>
-
-        <div class="cost-display">
-          <div class="cost-row">
-            <span>Input (<span class="cost-tokens" id="cost-input-tokens">0</span> tokens)</span>
-            <span class="cost-val" id="cost-input-val">$0.000000</span>
+        <!-- Token summary row -->
+        <div class="token-summary-row">
+          <div class="token-summary-item">
+            <span class="tsummary-label">Prompt tokens (input)</span>
+            <span class="tsummary-val" id="cost-input-tokens">0</span>
           </div>
-          <div class="cost-row">
-            <span>Est. output (<span class="cost-tokens" id="cost-output-tokens">~300</span> tokens)</span>
-            <span class="cost-val" id="cost-output-val">$0.000000</span>
-          </div>
-          <div class="cost-total-row">
-            <span>Total per call</span>
-            <span class="cost-total" id="cost-total">$0.000000</span>
+          <div class="token-summary-sep">+</div>
+          <div class="token-summary-item">
+            <span class="tsummary-label">Est. response (output)</span>
+            <span class="tsummary-val" id="cost-output-tokens">300</span>
           </div>
         </div>
 
-        <div class="volume-row">
-          <label for="volume-slider">Monthly volume</label>
-          <div class="volume-control">
-            <input type="range" id="volume-slider" min="0" max="5" value="2" step="1" />
-            <span class="volume-label" id="volume-label">1,000 calls/mo</span>
+        <!-- Output token slider -->
+        <div class="output-slider-row">
+          <label for="output-slider">Adjust expected response length</label>
+          <div class="output-slider-wrap">
+            <span class="output-slider-tick">Short</span>
+            <input type="range" id="output-slider" min="0" max="5" value="2" step="1" />
+            <span class="output-slider-tick">Long</span>
           </div>
-          <div class="monthly-cost">
-            <span>Monthly estimate</span>
-            <strong id="monthly-total">$0.00</strong>
+          <div class="output-presets" id="output-presets">
+            <span class="output-preset active" data-idx="0">~100</span>
+            <span class="output-preset" data-idx="1">~200</span>
+            <span class="output-preset active-mark" data-idx="2">~300</span>
+            <span class="output-preset" data-idx="3">~600</span>
+            <span class="output-preset" data-idx="4">~1 000</span>
+            <span class="output-preset" data-idx="5">~2 000</span>
           </div>
         </div>
 
-        <div class="model-specs" id="model-specs">
-          <div class="spec-row"><span>Input rate</span><span id="spec-input-rate">$1.00 / MTok</span></div>
-          <div class="spec-row"><span>Output rate</span><span id="spec-output-rate">$5.00 / MTok</span></div>
-          <div class="spec-row"><span>Best for</span><span id="spec-use-case">High-volume, fast tasks</span></div>
+        <!-- Per-call comparison table — all 3 models at once -->
+        <div class="model-compare-table" role="table" aria-label="Cost per call by model">
+          <div class="mct-head" role="row">
+            <span role="columnheader">Model</span>
+            <span role="columnheader">Input cost</span>
+            <span role="columnheader">Output cost</span>
+            <span role="columnheader">Per call</span>
+          </div>
+
+          <!-- Haiku -->
+          <div class="mct-row" role="row" data-model="haiku">
+            <div class="mct-model">
+              <span class="mct-dot haiku-dot"></span>
+              <div>
+                <strong>Haiku 4.5</strong>
+                <span class="mct-rate">$1 / $5 per MTok</span>
+              </div>
+            </div>
+            <span class="mct-val" id="haiku-input-cost">—</span>
+            <span class="mct-val" id="haiku-output-cost">—</span>
+            <span class="mct-total" id="haiku-total">—</span>
+          </div>
+
+          <!-- Sonnet -->
+          <div class="mct-row" role="row" data-model="sonnet">
+            <div class="mct-model">
+              <span class="mct-dot sonnet-dot"></span>
+              <div>
+                <strong>Sonnet 4.6</strong>
+                <span class="mct-rate">$3 / $15 per MTok</span>
+              </div>
+            </div>
+            <span class="mct-val" id="sonnet-input-cost">—</span>
+            <span class="mct-val" id="sonnet-output-cost">—</span>
+            <span class="mct-total" id="sonnet-total">—</span>
+          </div>
+
+          <!-- Opus -->
+          <div class="mct-row" role="row" data-model="opus">
+            <div class="mct-model">
+              <span class="mct-dot opus-dot"></span>
+              <div>
+                <strong>Opus 4.8</strong>
+                <span class="mct-rate">$5 / $25 per MTok</span>
+              </div>
+            </div>
+            <span class="mct-val" id="opus-input-cost">—</span>
+            <span class="mct-val" id="opus-output-cost">—</span>
+            <span class="mct-total" id="opus-total">—</span>
+          </div>
         </div>
+
+        <div class="best-value-row" id="best-value-row">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="best-value-text">Fill in your prompt to see cost estimates.</span>
+        </div>
+
+        <!-- Volume projection — clearly secondary -->
+        <details class="volume-details" id="volume-details">
+          <summary class="volume-summary">Monthly volume projection</summary>
+          <div class="volume-body">
+            <p class="volume-intro">Scale the per-call cost across your expected monthly usage.</p>
+            <div class="volume-control-row">
+              <input type="range" id="volume-slider" min="0" max="5" value="2" step="1" />
+              <span class="volume-label" id="volume-label">1,000 calls/mo</span>
+            </div>
+            <div class="volume-model-rows" id="volume-model-rows">
+              <div class="vol-row">
+                <span><span class="mct-dot haiku-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>Haiku 4.5</span>
+                <strong id="vol-haiku">—</strong>
+              </div>
+              <div class="vol-row">
+                <span><span class="mct-dot sonnet-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>Sonnet 4.6</span>
+                <strong id="vol-sonnet">—</strong>
+              </div>
+              <div class="vol-row">
+                <span><span class="mct-dot opus-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>Opus 4.8</span>
+                <strong id="vol-opus">—</strong>
+              </div>
+            </div>
+          </div>
+        </details>
       </div>
 
       <!-- Tips -->
