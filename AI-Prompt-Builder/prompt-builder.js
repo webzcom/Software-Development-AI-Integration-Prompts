@@ -404,3 +404,236 @@ function showToast(msg) {
   updateCostEstimator();
   updateMeter();
 })();
+
+/* ══════════════════════════════════════════════════════════
+   PERSONA LOADER
+   ══════════════════════════════════════════════════════════ */
+
+const elDropZone      = document.getElementById('persona-drop-zone');
+const elFileInput     = document.getElementById('persona-file-input');
+const elLoadedDisplay = document.getElementById('loaded-persona-display');
+const elLoadError     = document.getElementById('persona-load-error');
+const elLoadedIcon    = document.getElementById('loaded-persona-icon');
+const elLoadedName    = document.getElementById('loaded-persona-name');
+const elLoadedVersion = document.getElementById('loaded-persona-version');
+const elLoadedDesc    = document.getElementById('loaded-persona-desc');
+const elLoadedTags    = document.getElementById('loaded-persona-tags');
+
+/* ── Allowed values (must match HTML exactly) ─────────────── */
+const VALID_EXPERIENCE = ['a junior','a mid-level','a senior','a world-class expert',''];
+const VALID_VERBS      = ['Write','Analyze','Summarize','Review','Generate','Compare','Explain','Create','Debug','Translate','Rewrite','List',''];
+const VALID_ON_UNKNOWN = [
+  "Say 'I don't know' clearly rather than guessing",
+  "Ask a clarifying question before proceeding",
+  "Make a clearly labelled assumption and continue",
+  "Provide a best-effort answer with a confidence caveat",
+  ""
+];
+const VALID_FMT_TYPE = [
+  "Respond in plain prose paragraphs",
+  "Use markdown with headers and bullet points",
+  "Return a numbered list",
+  "Return a markdown table",
+  "Return valid JSON only, no prose",
+  "Use code blocks with explanations below each",
+  "Use a step-by-step numbered format",
+  "Write in Q&A format",
+  ""
+];
+const VALID_FMT_LENGTH = [
+  "Be concise — aim for under 150 words",
+  "Aim for 250–400 words",
+  "Be thorough — 500–800 words is acceptable",
+  "Be exhaustive and comprehensive — length is not a concern",
+  ""
+];
+
+/* ── Validation ───────────────────────────────────────────── */
+function validatePersona(data) {
+  const errors = [];
+  if (typeof data !== 'object' || data === null) {
+    errors.push('File must contain a JSON object.');
+    return errors;
+  }
+  if (!data.meta || typeof data.meta.name !== 'string' || !data.meta.name.trim())
+    errors.push('Missing required field: meta.name');
+  if (!data.meta || typeof data.meta.description !== 'string')
+    errors.push('Missing required field: meta.description');
+  if (!data.persona || typeof data.persona.role !== 'string' || !data.persona.role.trim())
+    errors.push('Missing required field: persona.role');
+  if (data.persona && data.persona.experience !== undefined && !VALID_EXPERIENCE.includes(data.persona.experience))
+    errors.push('persona.experience must be one of: ' + VALID_EXPERIENCE.filter(Boolean).join(', '));
+  if (data.task && data.task.verb !== undefined && !VALID_VERBS.includes(data.task.verb))
+    errors.push('task.verb must be one of: ' + VALID_VERBS.filter(Boolean).join(', '));
+  if (data.permission && data.permission.onUnknown !== undefined && !VALID_ON_UNKNOWN.includes(data.permission.onUnknown))
+    errors.push('permission.onUnknown does not match any allowed value — see persona-schema.json.');
+  if (data.format && data.format.type !== undefined && !VALID_FMT_TYPE.includes(data.format.type))
+    errors.push('format.type does not match any allowed value — see persona-schema.json.');
+  if (data.format && data.format.length !== undefined && !VALID_FMT_LENGTH.includes(data.format.length))
+    errors.push('format.length does not match any allowed value — see persona-schema.json.');
+  return errors;
+}
+
+/* ── Form hydration ───────────────────────────────────────── */
+function setSelectValue(elId, value) {
+  const el = document.getElementById(elId);
+  if (!el || value === undefined || value === null) return;
+  for (let i = 0; i < el.options.length; i++) {
+    if (el.options[i].value === value) { el.selectedIndex = i; return; }
+  }
+}
+
+function setRadioValue(name, value) {
+  if (!value) return;
+  document.querySelectorAll('input[name="' + name + '"]').forEach(r => {
+    r.checked = (r.value === value);
+  });
+}
+
+function setInputValue(elId, value) {
+  const el = document.getElementById(elId);
+  if (el && value !== undefined && value !== null) el.value = value;
+}
+
+function hydrateFormFromPersona(data) {
+  const p  = data.persona    || {};
+  const c  = data.context    || {};
+  const t  = data.task       || {};
+  const pm = data.permission || {};
+  const f  = data.format     || {};
+
+  setInputValue('persona-role',       p.role);
+  setSelectValue('persona-experience', p.experience);
+  setInputValue('persona-traits',     p.traits);
+
+  setInputValue('ctx-background',  c.background);
+  setInputValue('ctx-audience',    c.audience);
+  setInputValue('ctx-constraints', c.constraints);
+
+  setSelectValue('task-verb',       t.verb);
+  setInputValue('task-deliverable', t.deliverable);
+  setInputValue('task-goal',        t.goal);
+
+  setRadioValue('perm-unknown', pm.onUnknown);
+  setInputValue('perm-extra',   pm.extra);
+
+  setSelectValue('fmt-type',   f.type);
+  setSelectValue('fmt-length', f.length);
+  setInputValue('fmt-extra',   f.extra);
+
+  state.fields.personaRole       = p.role        || '';
+  state.fields.personaExperience = p.experience  || '';
+  state.fields.personaTraits     = p.traits      || '';
+  state.fields.ctxBackground     = c.background  || '';
+  state.fields.ctxAudience       = c.audience    || '';
+  state.fields.ctxConstraints    = c.constraints || '';
+  state.fields.taskVerb          = t.verb        || '';
+  state.fields.taskDeliverable   = t.deliverable || '';
+  state.fields.taskGoal          = t.goal        || '';
+  state.fields.permUnknown       = pm.onUnknown  || '';
+  state.fields.permExtra         = pm.extra      || '';
+  state.fields.fmtType           = f.type        || '';
+  state.fields.fmtLength         = f.length      || '';
+  state.fields.fmtExtra          = f.extra       || '';
+}
+
+/* ── UI: show loaded card ─────────────────────────────────── */
+function showLoadedPersona(data) {
+  const meta     = data.meta || {};
+  const initials = (meta.name || 'P').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+
+  elLoadedIcon.textContent    = initials;
+  elLoadedName.textContent    = meta.name        || 'Unnamed Persona';
+  elLoadedVersion.textContent = meta.version ? 'v' + meta.version : '';
+  elLoadedDesc.textContent    = meta.description || '';
+
+  elLoadedTags.innerHTML = '';
+  (meta.tags || []).forEach(function(tag) {
+    const span = document.createElement('span');
+    span.className   = 'persona-tag';
+    span.textContent = tag;
+    elLoadedTags.appendChild(span);
+  });
+
+  elLoadedDisplay.style.display = 'block';
+  elDropZone.style.display      = 'none';
+  elLoadError.style.display     = 'none';
+}
+
+function showPersonaError(messages) {
+  elLoadError.innerHTML     = '<strong>Could not load persona:</strong><br>' + messages.map(m => '&#8226; ' + m).join('<br>');
+  elLoadError.style.display = 'block';
+}
+
+function clearLoadedPersona() {
+  elLoadedDisplay.style.display = 'none';
+  elDropZone.style.display      = 'block';
+  elLoadError.style.display     = 'none';
+  elFileInput.value             = '';
+}
+
+/* ── File reader ──────────────────────────────────────────── */
+function readPersonaFile(file) {
+  if (!file || !file.name.toLowerCase().endsWith('.json')) {
+    showPersonaError(['File must be a .json file.']);
+    return;
+  }
+  const reader = new FileReader();
+  reader.addEventListener('load', function(ev) {
+    let data;
+    try {
+      data = JSON.parse(ev.target.result);
+    } catch (err) {
+      showPersonaError(['Invalid JSON: ' + err.message]);
+      return;
+    }
+    const errors = validatePersona(data);
+    if (errors.length > 0) { showPersonaError(errors); return; }
+
+    hydrateFormFromPersona(data);
+    showLoadedPersona(data);
+    onFieldChange();
+    showToast('Persona loaded: ' + data.meta.name);
+  });
+  reader.addEventListener('error', function() {
+    showPersonaError(['Failed to read file. Please try again.']);
+  });
+  reader.readAsText(file);
+}
+
+/* ── Drop zone events ─────────────────────────────────────── */
+elDropZone.addEventListener('click', function() { elFileInput.click(); });
+
+elDropZone.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); elFileInput.click(); }
+});
+
+elFileInput.addEventListener('change', function() {
+  if (this.files && this.files[0]) readPersonaFile(this.files[0]);
+});
+
+elDropZone.addEventListener('dragenter', function(e) {
+  e.preventDefault(); elDropZone.classList.add('drag-over');
+});
+elDropZone.addEventListener('dragover', function(e) {
+  e.preventDefault(); elDropZone.classList.add('drag-over');
+});
+elDropZone.addEventListener('dragleave', function(e) {
+  if (!elDropZone.contains(e.relatedTarget)) elDropZone.classList.remove('drag-over');
+});
+elDropZone.addEventListener('drop', function(e) {
+  e.preventDefault();
+  elDropZone.classList.remove('drag-over');
+  const file = e.dataTransfer && e.dataTransfer.files[0];
+  if (file) readPersonaFile(file);
+});
+
+/* Hook clear-persona into the existing click delegation */
+const _origClickHandler = document.onclick;
+document.addEventListener('click', function(e) {
+  if (e.target.closest('#btn-clear-persona')) {
+    clearLoadedPersona();
+    resetAll();
+    showToast('Persona removed — fields cleared.');
+  }
+});

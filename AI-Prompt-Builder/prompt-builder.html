@@ -283,6 +283,50 @@
     <!-- RIGHT: Live preview + cost estimator -->
     <aside class="right-panel" aria-label="Live preview and cost estimator">
 
+      <!-- Load Persona -->
+      <div class="panel-card" id="persona-loader-card">
+        <h3 class="panel-title">Load persona</h3>
+
+        <div id="loaded-persona-display" class="loaded-persona" style="display:none">
+          <div class="loaded-persona-header">
+            <div class="loaded-persona-icon" id="loaded-persona-icon">P</div>
+            <div class="loaded-persona-meta">
+              <strong id="loaded-persona-name">—</strong>
+              <span id="loaded-persona-version"></span>
+            </div>
+            <button id="btn-clear-persona" class="btn-clear-persona" title="Remove loaded persona">&#x2715;</button>
+          </div>
+          <p id="loaded-persona-desc" class="loaded-persona-desc"></p>
+          <div id="loaded-persona-tags" class="loaded-persona-tags"></div>
+        </div>
+
+        <div id="persona-drop-zone" class="persona-drop-zone" role="button" tabindex="0" aria-label="Drop a persona JSON file here or click to browse">
+          <svg class="drop-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+          <p class="drop-primary">Drop a persona <code>.json</code> file here</p>
+          <p class="drop-secondary">or click to browse</p>
+          <input type="file" id="persona-file-input" accept=".json,application/json" style="display:none" aria-hidden="true" />
+        </div>
+
+        <div id="persona-load-error" class="persona-load-error" style="display:none" role="alert"></div>
+
+        <div class="persona-hint">
+          <strong>How it works</strong> — load any <code>.json</code> file built from the schema. All fields pre-fill instantly; you can still edit any value after loading.
+          <br><br>
+          <strong>Included personas:</strong>
+          <ul class="persona-file-list">
+            <li><code>senior-csharp-mvc-developer.json</code></li>
+            <li><code>project-manager.json</code></li>
+            <li><code>software-tester.json</code></li>
+          </ul>
+          See <code>personas/persona-schema.json</code> to create your own.
+        </div>
+      </div>
+
       <!-- Live preview -->
       <div class="panel-card" id="live-preview-card">
         <h3 class="panel-title">Live prompt preview</h3>

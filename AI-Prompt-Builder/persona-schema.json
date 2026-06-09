@@ -1,0 +1,121 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "persona-schema.json",
+  "title": "PromptArchitect Persona",
+  "description": "Schema for PromptArchitect persona files. Place your .json persona files in the same folder as prompt-builder.html and load them via the 'Load Persona' panel.",
+  "type": "object",
+  "required": ["meta", "persona"],
+
+  "properties": {
+
+    "meta": {
+      "type": "object",
+      "description": "Descriptive metadata shown in the Load Persona UI.",
+      "required": ["name", "description"],
+      "properties": {
+        "name":        { "type": "string",  "description": "Short display name shown in the persona card. e.g. 'Senior C# MVC Developer'" },
+        "description": { "type": "string",  "description": "One or two sentences describing what this persona is best used for." },
+        "version":     { "type": "string",  "description": "Semver version string. e.g. '1.0.0'" },
+        "author":      { "type": "string",  "description": "Who created this persona file." },
+        "tags":        {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Searchable keywords. e.g. ['csharp', 'backend', 'senior']"
+        }
+      }
+    },
+
+    "persona": {
+      "type": "object",
+      "description": "Maps to Step 1 — Persona.",
+      "required": ["role"],
+      "properties": {
+        "role":       { "type": "string", "description": "The role or job title the AI should adopt. e.g. 'Senior C# ASP.NET Core MVC Web Developer'" },
+        "experience": {
+          "type": "string",
+          "description": "Experience level prefix. Must be one of the select option values.",
+          "enum": ["a junior", "a mid-level", "a senior", "a world-class expert", ""]
+        },
+        "traits":     { "type": "string", "description": "Comma-separated personality traits. e.g. 'concise, opinionated, pragmatic'" }
+      }
+    },
+
+    "context": {
+      "type": "object",
+      "description": "Maps to Step 2 — Context. All fields optional but recommended.",
+      "properties": {
+        "background":   { "type": "string", "description": "Background situation, tech stack, team structure, or domain knowledge the AI should have." },
+        "audience":     { "type": "string", "description": "Who will read the AI's output." },
+        "constraints":  { "type": "string", "description": "Hard rules: language, style, libraries to avoid, word limits, etc." }
+      }
+    },
+
+    "task": {
+      "type": "object",
+      "description": "Maps to Step 3 — Task. Provides default values. Users typically override deliverable/goal per-session.",
+      "properties": {
+        "verb": {
+          "type": "string",
+          "description": "Default action verb. Must match one of the select options.",
+          "enum": ["Write","Analyze","Summarize","Review","Generate","Compare","Explain","Create","Debug","Translate","Rewrite","List",""]
+        },
+        "deliverable": { "type": "string", "description": "Default deliverable description. Usually left blank so users fill it in." },
+        "goal":        { "type": "string", "description": "Default desired outcome. Usually left blank." }
+      }
+    },
+
+    "permission": {
+      "type": "object",
+      "description": "Maps to Step 4 — Permission.",
+      "properties": {
+        "onUnknown": {
+          "type": "string",
+          "description": "What the AI should do when uncertain. Must match one of the radio option values exactly.",
+          "enum": [
+            "Say 'I don't know' clearly rather than guessing",
+            "Ask a clarifying question before proceeding",
+            "Make a clearly labelled assumption and continue",
+            "Provide a best-effort answer with a confidence caveat",
+            ""
+          ]
+        },
+        "extra": { "type": "string", "description": "Additional permissions or restrictions. e.g. 'You may cite official docs. Flag security issues proactively.'" }
+      }
+    },
+
+    "format": {
+      "type": "object",
+      "description": "Maps to Step 5 — Format.",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Output format. Must match one of the select option values exactly.",
+          "enum": [
+            "Respond in plain prose paragraphs",
+            "Use markdown with headers and bullet points",
+            "Return a numbered list",
+            "Return a markdown table",
+            "Return valid JSON only, no prose",
+            "Use code blocks with explanations below each",
+            "Use a step-by-step numbered format",
+            "Write in Q&A format",
+            ""
+          ]
+        },
+        "length": {
+          "type": "string",
+          "description": "Length/depth preference. Must match one of the select option values exactly.",
+          "enum": [
+            "Be concise — aim for under 150 words",
+            "Aim for 250–400 words",
+            "Be thorough — 500–800 words is acceptable",
+            "Be exhaustive and comprehensive — length is not a concern",
+            ""
+          ]
+        },
+        "extra": { "type": "string", "description": "Any additional formatting instructions not covered by the type/length selects." }
+      }
+    }
+
+  }
+}
