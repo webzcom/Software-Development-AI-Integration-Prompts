@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prompt Architect — Build Better AI Prompts</title>
+  <link rel="stylesheet" href="prompt-builder.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-mark">P</span>
+        <span class="logo-text">Prompt<strong>Architect</strong></span>
+      </div>
+      <nav class="step-nav" aria-label="Prompt sections">
+        <button class="step-pill active" data-step="0">Persona</button>
+        <span class="step-sep" aria-hidden="true">›</span>
+        <button class="step-pill" data-step="1">Context</button>
+        <span class="step-sep" aria-hidden="true">›</span>
+        <button class="step-pill" data-step="2">Task</button>
+        <span class="step-sep" aria-hidden="true">›</span>
+        <button class="step-pill" data-step="3">Permission</button>
+        <span class="step-sep" aria-hidden="true">›</span>
+        <button class="step-pill" data-step="4">Format</button>
+        <span class="step-sep" aria-hidden="true">›</span>
+        <button class="step-pill" data-step="5">Preview</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-layout">
+
+    <!-- LEFT: Steps panel -->
+    <section class="steps-panel" aria-label="Prompt builder steps">
+
+      <!-- STEP 0: Persona -->
+      <div class="step-card active" id="step-0" role="region" aria-labelledby="step-0-title">
+        <div class="step-card-inner">
+        <div class="step-header">
+          <div class="step-badge">1</div>
+          <div>
+            <h2 id="step-0-title">Persona</h2>
+            <p class="step-tagline">Who is the AI playing?</p>
+          </div>
+        </div>
+        <p class="step-desc">Define the role, expertise level, and personality the AI should adopt. A well-defined persona shapes the tone, vocabulary, and depth of every response.</p>
+
+        <div class="field-group">
+          <label for="persona-role">Role / Job Title</label>
+          <input type="text" id="persona-role" placeholder="e.g. Senior UX Researcher, Tax Attorney, Sous Chef…" />
+        </div>
+        <div class="field-group">
+          <label for="persona-experience">Experience Level</label>
+          <select id="persona-experience">
+            <option value="">— choose —</option>
+            <option value="a junior">Junior (0–3 years)</option>
+            <option value="a mid-level">Mid-level (3–7 years)</option>
+            <option value="a senior">Senior (7–15 years)</option>
+            <option value="a world-class expert">Expert / World-class</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="persona-traits">Personality Traits <span class="optional">optional</span></label>
+          <input type="text" id="persona-traits" placeholder="e.g. concise, encouraging, skeptical of assumptions…" />
+        </div>
+
+        <div class="example-box" id="persona-example">
+          <span class="example-label">Preview</span>
+          <p id="persona-preview-text">Fill in the fields above to see your persona take shape.</p>
+        </div>
+
+        <div class="step-actions">
+          <button class="btn-next" data-next="1">Next: Context <span aria-hidden="true">→</span></button>
+        </div>
+        </div>
+      </div>
+
+      <!-- STEP 1: Context -->
+      <div class="step-card" id="step-1" role="region" aria-labelledby="step-1-title">
+        <div class="step-card-inner">
+        <div class="step-header">
+          <div class="step-badge">2</div>
+          <div>
+            <h2 id="step-1-title">Context</h2>
+            <p class="step-tagline">What does it need to know?</p>
+          </div>
+        </div>
+        <p class="step-desc">Background information, constraints, and situational details that frame the request. More relevant context = fewer assumptions = better output.</p>
+
+        <div class="field-group">
+          <label for="ctx-background">Background / Situation</label>
+          <textarea id="ctx-background" rows="3" placeholder="Describe the project, domain, or situation the AI should understand…"></textarea>
+        </div>
+        <div class="field-group">
+          <label for="ctx-audience">Target Audience <span class="optional">optional</span></label>
+          <input type="text" id="ctx-audience" placeholder="e.g. Non-technical stakeholders, junior developers, C-suite…" />
+        </div>
+        <div class="field-group">
+          <label for="ctx-constraints">Constraints / Guardrails <span class="optional">optional</span></label>
+          <input type="text" id="ctx-constraints" placeholder="e.g. No jargon, UK English, under 500 words, no legal advice…" />
+        </div>
+
+        <div class="step-actions">
+          <button class="btn-back" data-back="0"><span aria-hidden="true">←</span> Back</button>
+          <button class="btn-next" data-next="2">Next: Task <span aria-hidden="true">→</span></button>
+        </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: Task -->
+      <div class="step-card" id="step-2" role="region" aria-labelledby="step-2-title">
+        <div class="step-card-inner">
+        <div class="step-header">
+          <div class="step-badge">3</div>
+          <div>
+            <h2 id="step-2-title">Task</h2>
+            <p class="step-tagline">What exactly do you want?</p>
+          </div>
+        </div>
+        <p class="step-desc">Be precise. The best tasks use an action verb and describe the exact deliverable. Vague tasks produce vague outputs.</p>
+
+        <div class="field-group">
+          <label for="task-verb">Action Verb</label>
+          <select id="task-verb">
+            <option value="">— choose —</option>
+            <option>Write</option>
+            <option>Analyze</option>
+            <option>Summarize</option>
+            <option>Review</option>
+            <option>Generate</option>
+            <option>Compare</option>
+            <option>Explain</option>
+            <option>Create</option>
+            <option>Debug</option>
+            <option>Translate</option>
+            <option>Rewrite</option>
+            <option>List</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="task-deliverable">The Deliverable</label>
+          <input type="text" id="task-deliverable" placeholder="e.g. a 3-paragraph executive summary of the attached report…" />
+        </div>
+        <div class="field-group">
+          <label for="task-goal">Desired Outcome / Goal <span class="optional">optional</span></label>
+          <input type="text" id="task-goal" placeholder="e.g. so stakeholders can approve the project in under 2 minutes…" />
+        </div>
+
+        <div class="step-actions">
+          <button class="btn-back" data-back="1"><span aria-hidden="true">←</span> Back</button>
+          <button class="btn-next" data-next="3">Next: Permission <span aria-hidden="true">→</span></button>
+        </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: Permission -->
+      <div class="step-card" id="step-3" role="region" aria-labelledby="step-3-title">
+        <div class="step-card-inner">
+        <div class="step-header">
+          <div class="step-badge">4</div>
+          <div>
+            <h2 id="step-3-title">Permission</h2>
+            <p class="step-tagline">What should it do when uncertain?</p>
+          </div>
+        </div>
+        <p class="step-desc">Explicitly tell the AI what to do when it doesn't have enough information. This prevents hallucination and keeps outputs trustworthy.</p>
+
+        <div class="field-group">
+          <label>When the AI doesn't know something, it should:</label>
+          <div class="radio-group">
+            <label class="radio-item">
+              <input type="radio" name="perm-unknown" value="Say 'I don't know' clearly rather than guessing" /> Say "I don't know" clearly
+            </label>
+            <label class="radio-item">
+              <input type="radio" name="perm-unknown" value="Ask a clarifying question before proceeding" /> Ask a clarifying question
+            </label>
+            <label class="radio-item">
+              <input type="radio" name="perm-unknown" value="Make a clearly labelled assumption and continue" /> State assumption and continue
+            </label>
+            <label class="radio-item">
+              <input type="radio" name="perm-unknown" value="Provide a best-effort answer with a confidence caveat" /> Give best-effort with a caveat
+            </label>
+          </div>
+        </div>
+        <div class="field-group">
+          <label for="perm-extra">Additional Permissions / Restrictions <span class="optional">optional</span></label>
+          <input type="text" id="perm-extra" placeholder="e.g. You may cite sources, do not speculate on legal matters…" />
+        </div>
+
+        <div class="step-actions">
+          <button class="btn-back" data-back="2"><span aria-hidden="true">←</span> Back</button>
+          <button class="btn-next" data-next="4">Next: Format <span aria-hidden="true">→</span></button>
+        </div>
+        </div>
+      </div>
+
+      <!-- STEP 4: Format -->
+      <div class="step-card" id="step-4" role="region" aria-labelledby="step-4-title">
+        <div class="step-card-inner">
+        <div class="step-header">
+          <div class="step-badge">5</div>
+          <div>
+            <h2 id="step-4-title">Format</h2>
+            <p class="step-tagline">How should the output be structured?</p>
+          </div>
+        </div>
+        <p class="step-desc">Output format directly affects how usable the response is. Be explicit — the AI can't read your mind about whether you want markdown, a table, JSON, or flowing prose.</p>
+
+        <div class="field-group">
+          <label for="fmt-type">Output Format</label>
+          <select id="fmt-type">
+            <option value="">— choose —</option>
+            <option value="Respond in plain prose paragraphs">Plain prose</option>
+            <option value="Use markdown with headers and bullet points">Markdown (headers + bullets)</option>
+            <option value="Return a numbered list">Numbered list</option>
+            <option value="Return a markdown table">Markdown table</option>
+            <option value="Return valid JSON only, no prose">JSON only</option>
+            <option value="Use code blocks with explanations below each">Code + explanation</option>
+            <option value="Use a step-by-step numbered format">Step-by-step</option>
+            <option value="Write in Q&A format">Q&A format</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="fmt-length">Length / Depth</label>
+          <select id="fmt-length">
+            <option value="">— choose —</option>
+            <option value="Be concise — aim for under 150 words">Concise (under 150 words)</option>
+            <option value="Aim for 250–400 words">Medium (250–400 words)</option>
+            <option value="Be thorough — 500–800 words is acceptable">Detailed (500–800 words)</option>
+            <option value="Be exhaustive and comprehensive — length is not a concern">Exhaustive</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="fmt-extra">Additional Format Notes <span class="optional">optional</span></label>
+          <input type="text" id="fmt-extra" placeholder="e.g. End with a TL;DR, include a summary table, use UK spelling…" />
+        </div>
+
+        <div class="step-actions">
+          <button class="btn-back" data-back="3"><span aria-hidden="true">←</span> Back</button>
+          <button class="btn-next" data-next="5">Preview &amp; Estimate <span aria-hidden="true">→</span></button>
+        </div>
+        </div>
+      </div>
+
+      <!-- STEP 5: Preview -->
+      <div class="step-card" id="step-5" role="region" aria-labelledby="step-5-title">
+        <div class="step-card-inner">
+        <div class="step-header">
+          <div class="step-badge">✓</div>
+          <div>
+            <h2 id="step-5-title">Your Prompt</h2>
+            <p class="step-tagline">Ready to use</p>
+          </div>
+        </div>
+
+        <div class="prompt-output-wrap">
+          <div class="prompt-output-header">
+            <span class="prompt-quality" id="quality-badge">—</span>
+            <div class="prompt-output-actions">
+              <button id="btn-copy" class="btn-icon" title="Copy prompt">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+              <button id="btn-reset" class="btn-icon" title="Start over">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                Reset
+              </button>
+            </div>
+          </div>
+          <pre id="prompt-output" class="prompt-output"></pre>
+        </div>
+
+        <div class="step-actions">
+          <button class="btn-back" data-back="4"><span aria-hidden="true">←</span> Edit prompt</button>
+        </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT: Live preview + cost estimator -->
+    <aside class="right-panel" aria-label="Live preview and cost estimator">
+
+      <!-- Load Persona -->
+      <div class="panel-card" id="persona-loader-card">
+        <h3 class="panel-title">Load persona</h3>
+
+        <div id="loaded-persona-display" class="loaded-persona" style="display:none">
+          <div class="loaded-persona-header">
+            <div class="loaded-persona-icon" id="loaded-persona-icon">P</div>
+            <div class="loaded-persona-meta">
+              <strong id="loaded-persona-name">—</strong>
+              <span id="loaded-persona-version"></span>
+            </div>
+            <button id="btn-clear-persona" class="btn-clear-persona" title="Remove loaded persona">&#x2715;</button>
+          </div>
+          <p id="loaded-persona-desc" class="loaded-persona-desc"></p>
+          <div id="loaded-persona-tags" class="loaded-persona-tags"></div>
+        </div>
+
+        <div id="persona-drop-zone" class="persona-drop-zone" role="button" tabindex="0" aria-label="Drop a persona JSON file here or click to browse">
+          <svg class="drop-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+          <p class="drop-primary">Drop a persona <code>.json</code> file here</p>
+          <p class="drop-secondary">or click to browse</p>
+          <input type="file" id="persona-file-input" accept=".json,application/json" style="display:none" aria-hidden="true" />
+        </div>
+
+        <div id="persona-load-error" class="persona-load-error" style="display:none" role="alert"></div>
+
+        <div class="persona-hint">
+          <strong>How it works</strong> — load any <code>.json</code> file built from the schema. All fields pre-fill instantly; you can still edit any value after loading.
+          <br><br>
+          <strong>Included personas:</strong>
+          <ul class="persona-file-list">
+            <li><code>senior-csharp-mvc-developer.json</code></li>
+            <li><code>project-manager.json</code></li>
+            <li><code>software-tester.json</code></li>
+          </ul>
+          See <code>personas/persona-schema.json</code> to create your own.
+        </div>
+      </div>
+
+      <!-- Live preview -->
+      <div class="panel-card" id="live-preview-card">
+        <h3 class="panel-title">Live prompt preview</h3>
+        <div class="live-prompt" id="live-prompt-text">Start filling in the steps on the left to see your prompt build here in real time.</div>
+        <div class="token-row">
+          <span class="token-label">Estimated tokens</span>
+          <span class="token-count" id="token-count">0</span>
+        </div>
+      </div>
+
+      <!-- Completeness meter -->
+      <div class="panel-card">
+        <h3 class="panel-title">Prompt completeness</h3>
+        <div class="meter-grid" id="meter-grid">
+          <div class="meter-item" data-section="persona">
+            <div class="meter-dot empty"></div>
+            <span>Persona</span>
+          </div>
+          <div class="meter-item" data-section="context">
+            <div class="meter-dot empty"></div>
+            <span>Context</span>
+          </div>
+          <div class="meter-item" data-section="task">
+            <div class="meter-dot empty"></div>
+            <span>Task</span>
+          </div>
+          <div class="meter-item" data-section="permission">
+            <div class="meter-dot empty"></div>
+            <span>Permission</span>
+          </div>
+          <div class="meter-item" data-section="format">
+            <div class="meter-dot empty"></div>
+            <span>Format</span>
+          </div>
+        </div>
+        <div class="meter-bar-wrap">
+          <div class="meter-bar" id="meter-bar"></div>
+        </div>
+        <div class="meter-score" id="meter-score">0 / 5 sections complete</div>
+      </div>
+
+      <!-- Cost estimator -->
+      <div class="panel-card" id="cost-card">
+        <h3 class="panel-title">Cost estimator</h3>
+        <p class="panel-note">Based on official Anthropic API pricing (June 2026). Estimated output assumes a medium-length response.</p>
+
+        <div class="model-tabs" role="tablist" aria-label="Model pricing tabs">
+          <button class="model-tab active" role="tab" aria-selected="true" data-model="haiku">Haiku 4.5</button>
+          <button class="model-tab" role="tab" aria-selected="false" data-model="sonnet">Sonnet 4.6</button>
+          <button class="model-tab" role="tab" aria-selected="false" data-model="opus">Opus 4.8</button>
+        </div>
+
+        <div class="cost-display">
+          <div class="cost-row">
+            <span>Input (<span class="cost-tokens" id="cost-input-tokens">0</span> tokens)</span>
+            <span class="cost-val" id="cost-input-val">$0.000000</span>
+          </div>
+          <div class="cost-row">
+            <span>Est. output (<span class="cost-tokens" id="cost-output-tokens">~300</span> tokens)</span>
+            <span class="cost-val" id="cost-output-val">$0.000000</span>
+          </div>
+          <div class="cost-total-row">
+            <span>Total per call</span>
+            <span class="cost-total" id="cost-total">$0.000000</span>
+          </div>
+        </div>
+
+        <div class="volume-row">
+          <label for="volume-slider">Monthly volume</label>
+          <div class="volume-control">
+            <input type="range" id="volume-slider" min="0" max="5" value="2" step="1" />
+            <span class="volume-label" id="volume-label">1,000 calls/mo</span>
+          </div>
+          <div class="monthly-cost">
+            <span>Monthly estimate</span>
+            <strong id="monthly-total">$0.00</strong>
+          </div>
+        </div>
+
+        <div class="model-specs" id="model-specs">
+          <div class="spec-row"><span>Input rate</span><span id="spec-input-rate">$1.00 / MTok</span></div>
+          <div class="spec-row"><span>Output rate</span><span id="spec-output-rate">$5.00 / MTok</span></div>
+          <div class="spec-row"><span>Best for</span><span id="spec-use-case">High-volume, fast tasks</span></div>
+        </div>
+      </div>
+
+      <!-- Tips -->
+      <div class="panel-card tips-card" id="tips-card">
+        <h3 class="panel-title">Prompt tips</h3>
+        <ul class="tips-list" id="tips-list">
+          <li>Start with a persona — it immediately improves tone and vocabulary.</li>
+          <li>Context before task — always set the scene before asking for action.</li>
+          <li>Use a specific action verb: "analyze" beats "look at".</li>
+          <li>Tell the AI what to do when uncertain to prevent hallucination.</li>
+          <li>Specify output format or you'll get whatever the model defaults to.</li>
+        </ul>
+      </div>
+
+    </aside>
+  </main>
+
+  <div id="toast" class="toast" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="prompt-builder.js"></script>
+</body>
+</html>
