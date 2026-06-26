@@ -1,5 +1,7 @@
 $CsvFile = "C:\scripts\AI-Skills\history.csv"
 
+# powershell.exe -ExecutionPolicy Bypass -File "C:\scripts\AI-Skills\update-csv-file.ps1"
+
 $Header = "ScanTime,IP,StatusCode,Requests,Subnet,Action"
 
 if (-not (Test-Path $CsvFile)) {
