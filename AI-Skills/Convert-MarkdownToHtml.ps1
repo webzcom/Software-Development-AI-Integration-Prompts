@@ -152,7 +152,7 @@ function Test-MarkdownTableSeparator {
         [string]$Line
     )
 
-    $cells = Get-MarkdownTableCells -Line $Line
+    $cells = @(Get-MarkdownTableCells -Line $Line)
     if ($cells.Count -eq 0) {
         return $false
     }
@@ -169,13 +169,17 @@ function Test-MarkdownTableSeparator {
 function Convert-MarkdownTableToHtml {
     param(
         [Parameter(Mandatory = $true)]
-        [string[]]$Header,
+        [AllowNull()]
+        [AllowEmptyCollection()]
+        [object[]]$Header,
 
         [Parameter(Mandatory = $true)]
+        [AllowNull()]
+        [AllowEmptyCollection()]
         [object[]]$Rows
     )
 
-    if ($Header.Count -eq 0) {
+    if (-not $Header -or $Header.Count -eq 0) {
         return $null
     }
 
@@ -336,7 +340,7 @@ function Convert-MarkdownContentToHtml {
                 $listType = $null
             }
 
-            $headerCells = Get-MarkdownTableCells -Line $line
+            $headerCells = @(Get-MarkdownTableCells -Line $line)
             $tableRows = @()
             $index++
 
@@ -356,11 +360,14 @@ function Convert-MarkdownContentToHtml {
                     break
                 }
 
-                $tableRows += ,(Get-MarkdownTableCells -Line $nextLine)
+                $tableRows += ,@(Get-MarkdownTableCells -Line $nextLine)
                 $index++
             }
 
-            $htmlBlocks += Convert-MarkdownTableToHtml -Header $headerCells -Rows $tableRows
+            $tableHtml = Convert-MarkdownTableToHtml -Header $headerCells -Rows $tableRows
+            if ($null -ne $tableHtml) {
+                $htmlBlocks += $tableHtml
+            }
             continue
         }
 
